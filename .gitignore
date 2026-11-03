@@ -1,2 +1,5 @@
 node_modules/*
-!node_modules/chrome-options/
+!node_modules/web-extension-options/
+dist/
+.nyc_output/
+coverage/

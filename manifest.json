@@ -1,8 +1,8 @@
 {
-  "name": "Chrome Options Demo",
+  "name": "Web Extension Options Demo",
   "version": "1.0.0",
   "manifest_version": 3,
-  "description": "Example Chrome extension demonstrating chrome-options",
+  "description": "Example Web Extension demonstrating web-extension-options",
   "permissions": [
     "storage"
   ],
@@ -13,7 +13,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "node_modules/chrome-options/sounds/*.wav"
+        "node_modules/web-extension-options/sounds/*.mp3"
       ],
       "matches": [
         "<all_urls>"

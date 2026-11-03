@@ -1,14 +1,10 @@
-/* global chrome */
+/* global webExtensionOptions */
 
-chrome.options.opts.about = `
-  <p>This is my about page :)</p>
-  <p>
-    See how this demo's options are structured
-    in the <a href="options.js">options.js</a> file
-  </p>
-`;
+webExtensionOptions.opts.title = 'Web Extension Options Demo';
+webExtensionOptions.opts.about =
+  'Example Web Extension demonstrating web-extension-options';
 
-chrome.options.addTab('General', [
+webExtensionOptions.addTab('General', [
   { name: '1', desc: 'Enable my feature' },
   { name: '2', desc: 'Enable watching' },
   { name: '3', desc: 'Allow users to start it out' },
@@ -46,7 +42,7 @@ chrome.options.addTab('General', [
     ] }
 ]);
 
-chrome.options.addTab('Advanced', [
+webExtensionOptions.addTab('Advanced', [
   { type: 'predefined_sound', name: 'psound',
     desc: 'Choose from a list of common alert sounds' },
   { type: 'custom_sound', name: 'csound',
