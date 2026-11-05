@@ -14,10 +14,11 @@ if (!fs.existsSync(distDir)) {
 async function build() {
   // 1. Bundle JS
   const jsOptions = {
-    entryPoints: [path.resolve(rootDir, 'src/js/chrome-options.js')],
+    entryPoints: [path.resolve(rootDir, 'src/js/main.js')],
     outfile: path.resolve(distDir, 'main.min.js'),
     bundle: true,
     format: 'iife',
+    globalName: 'webExtensionOptions',
     sourcemap: true,
     minify: !isDev,
     target: ['chrome58'],
@@ -27,7 +28,7 @@ async function build() {
 
   // 2. Bundle CSS
   const cssOptions = {
-    entryPoints: [path.resolve(rootDir, 'src/css/chrome-options.css')],
+    entryPoints: [path.resolve(rootDir, 'src/css/styles.css')],
     outfile: path.resolve(distDir, 'styles.min.css'),
     bundle: true,
     sourcemap: true,

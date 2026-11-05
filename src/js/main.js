@@ -1,16 +1,16 @@
-/* global chrome */
+/* global chrome, browser */
 
-import './base.js';
-import './fields.js';
+import { options } from './base.js';
 import * as dom from './dom.js';
+import './fields.js';
 import h from './hyperscript.js';
 import * as util from './util.js';
 
 // Expose this library.
-chrome.options.util = util;
-chrome.options.dom = dom;
-chrome.options.h = h;
-chrome.options.opts = {
+options.util = util;
+options.dom = dom;
+options.h = h;
+options.opts = {
   // If not given, title of the page will be set to the extension's name.
   // Set to `false` if you want to hide the title.
   title: null,
@@ -19,6 +19,9 @@ chrome.options.opts = {
   // otherwise it will be set to the extension's description.
   // Set to `false` if you don't want an About page.
   about: null,
+
+  // Set this to customize the description if not reading from manifest.
+  description: null,
 
   // True if you want settings to be saved as they are changed.
   autoSave: true,
@@ -82,8 +85,9 @@ const changedValues = {};
 const $saveContainer = document.querySelector('.save-container');
 const $saveButton = $saveContainer.querySelector('button');
 $saveButton.addEventListener('click', () => {
-  chrome.storage.sync.set(changedValues);
-  $saveButton.setAttribute('disabled', true);
+  getStorage().set(changedValues, () => {
+    $saveButton.setAttribute('disabled', true);
+  });
 });
 const showSavedAlert = dom.flashClass($saveContainer, 'show', 2000);
 const flashSavedAlert = dom.flashClass($saveContainer, 'flash', 150);
@@ -96,25 +100,28 @@ const setup = () => {
   }
   const manifest = chrome.runtime.getManifest();
 
-  const extensionName = chrome.options.opts.title || manifest.name || 'chrome';
+  const extensionName = options.opts.title || manifest.name || 'web extension';
   document.querySelector('title').textContent = `${extensionName} options`;
-  const $title = document.querySelector('.chrome-options-title');
-  $title.textContent = extensionName;
-  if (chrome.options.opts.title !== false && !urlParams.hideTitle) {
+  const $title = document.querySelector('.web-extension-options-title');
+  if ($title) {
+    $title.textContent = extensionName;
+  }
+  if (options.opts.title !== false && !urlParams.hideTitle) {
     document.body.classList.add('show-title');
   }
 
+  const description = options.opts.description || manifest.description;
   if (
-    chrome.options.opts.about !== false &&
-    (chrome.options.opts.about || manifest.description) &&
+    options.opts.about !== false &&
+    (options.opts.about || description) &&
     !urlParams.hideAbout
   ) {
     document.body.classList.add('show-about');
     const $about = document.querySelector('#about .content > p');
-    if (chrome.options.opts.about) {
-      $about.innerHTML = chrome.options.opts.about;
+    if (options.opts.about) {
+      $about.innerHTML = options.opts.about;
     } else {
-      $about.textContent = manifest.description;
+      $about.textContent = description;
     }
   }
 
@@ -134,7 +141,7 @@ const setup = () => {
     document.body.classList.add('show-tab-desc');
   }
 
-  if (chrome.options.opts.autoSave) {
+  if (options.opts.autoSave) {
     $saveButton.style.display = 'none';
   } else {
     $saveContainer.querySelector('.auto').style.display = 'none';
@@ -144,23 +151,19 @@ const setup = () => {
   setupRan = true;
 };
 
-const getKeyPath = (parentKey, option) => {
-  return (
-    (parentKey || '') +
-    (parentKey && option.name ? '.' : '') +
-    (option.name || '')
-  );
+const getKeyPath = (tabKey, option) => {
+  return (tabKey ? `${tabKey}.` : '') + (option.name || '');
 };
 
 /**
  * @param {string} name
  * @param {!string} desc Will be placed at the top of the page of the tab
- * @param {Array.<Object>} options
+ * @param {Array.<Object>} tabOptions
  */
-chrome.options.addTab = (name, desc, options) => {
+options.addTab = (name, desc, tabOptions) => {
   setup();
-  if (!options) {
-    options = desc;
+  if (!tabOptions) {
+    tabOptions = desc;
     desc = null;
   }
   const tabKey = name.toLowerCase().replace(' ', '_');
@@ -179,11 +182,11 @@ chrome.options.addTab = (name, desc, options) => {
     const tabHashPath = tabKey.length
       ? hashPath.slice(1)
       : [hashPath[0].replace(/^#/, '')].concat(hashPath.slice(1));
-    const filterOptions = (options = [], depth) => {
+    const filterOptions = (optionsList = [], depth) => {
       if (tabHashPath.length <= depth) {
-        return options;
+        return optionsList;
       }
-      return options
+      return optionsList
         .filter((option) => {
           // Allow layout based options.
           return (
@@ -201,12 +204,12 @@ chrome.options.addTab = (name, desc, options) => {
           return option;
         });
     };
-    options = filterOptions(options, 0);
+    tabOptions = filterOptions(tabOptions, 0);
   }
 
   const keys = [];
-  const getOptionKeys = (options) => {
-    options.forEach((option) => {
+  const getOptionKeys = (list) => {
+    list.forEach((option) => {
       if (option.name) {
         keys.push(getKeyPath(tabKey, option));
       } else if (option.type === 'column' || option.type === 'row') {
@@ -214,10 +217,10 @@ chrome.options.addTab = (name, desc, options) => {
       }
     });
   };
-  getOptionKeys(options);
+  getOptionKeys(tabOptions);
 
   chrome.storage.sync.get(keys, (items) => {
-    $tabcontent.append(addTabOptions(tabKey, items, options));
+    $tabcontent.append(addTabOptions(tabKey, items, tabOptions));
   });
   $tabview.append($tabcontent);
   $mainview.append($tabview);
@@ -225,18 +228,18 @@ chrome.options.addTab = (name, desc, options) => {
 
 /**
  * @param {!string} desc
- * @param {Array.<Object>} options
+ * @param {Array.<Object>} tabOptions
  */
-chrome.options.set = (desc, options) => {
+options.set = (desc, tabOptions) => {
   urlParams.hideSidebar = true;
   urlParams.hideTabTitle = true;
-  chrome.options.addTab('', desc, options);
+  options.addTab('', desc, tabOptions);
 };
 
-const addTabOptions = (tabKey, values, options) => {
+const addTabOptions = (tabKey, values, tabOptions) => {
   return h(
     '',
-    options.map((option) => {
+    tabOptions.map((option) => {
       const key = getKeyPath(tabKey, option);
       const isLayout = option.type === 'column' || option.type === 'row';
       let value = isLayout ? values : values[key];
@@ -254,7 +257,7 @@ const addTabOptions = (tabKey, values, options) => {
 
       let duringLoad = true;
       const save = (newValue) => {
-        const autoSave = chrome.options.opts.autoSave || duringLoad;
+        const autoSave = options.opts.autoSave || duringLoad;
         requestAnimationFrame(() => {
           latestValue = newValue;
           const isEqual = util.deepEqual(value, newValue);
@@ -282,9 +285,17 @@ const addTabOptions = (tabKey, values, options) => {
           }
         });
       };
-      const $option = chrome.options.addOption(key, value, save, option);
+      const $option = options.addOption(key, value, save, option);
       duringLoad = false;
       return $option;
     }),
   );
 };
+
+if (typeof window !== 'undefined') {
+  window.webExtensionOptions = options;
+}
+
+options.default = options;
+
+module.exports = options;

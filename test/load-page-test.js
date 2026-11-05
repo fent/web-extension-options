@@ -9,7 +9,7 @@ const { createCoverageMap } = require('istanbul-lib-coverage');
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DIST_DIR = path.resolve(ROOT_DIR, 'dist');
 
-describe('chrome-options page loading', function () {
+describe('web-extension-options page loading', function () {
   this.timeout(15000);
 
   let server;
@@ -60,7 +60,7 @@ describe('chrome-options page loading', function () {
 
       if (
         urlPath === '/dist/main.min.js' ||
-        urlPath === '/node_modules/chrome-options/dist/main.min.js'
+        urlPath === '/node_modules/web-extension-options/dist/main.min.js'
       ) {
         res.writeHead(200, { 'Content-Type': 'application/javascript' });
         res.end(fs.readFileSync(path.join(DIST_DIR, 'main.min.js')));
@@ -69,7 +69,7 @@ describe('chrome-options page loading', function () {
 
       if (
         urlPath === '/dist/styles.min.js' ||
-        urlPath === '/node_modules/chrome-options/dist/styles.min.js'
+        urlPath === '/node_modules/web-extension-options/dist/styles.min.js'
       ) {
         res.writeHead(200, { 'Content-Type': 'application/javascript' });
         res.end(fs.readFileSync(path.join(DIST_DIR, 'styles.min.js')));
@@ -78,7 +78,7 @@ describe('chrome-options page loading', function () {
 
       if (
         urlPath === '/dist/styles.min.css' ||
-        urlPath === '/node_modules/chrome-options/dist/styles.min.css'
+        urlPath === '/node_modules/web-extension-options/dist/styles.min.css'
       ) {
         res.writeHead(200, { 'Content-Type': 'text/css' });
         res.end(fs.readFileSync(path.join(DIST_DIR, 'styles.min.css')));
@@ -97,8 +97,8 @@ describe('chrome-options page loading', function () {
   <script src="/dist/main.min.js" defer></script>
   <script>
     window.addEventListener('DOMContentLoaded', function() {
-      chrome.options.opts.about = '<p>Custom about paragraph</p>';
-      chrome.options.addTab('General', [
+      webExtensionOptions.opts.about = '<p>Custom about paragraph</p>';
+      webExtensionOptions.addTab('General', [
         { name: 'enable_feature', type: 'checkbox', desc: 'Enable feature', default: true },
         { name: 'username', type: 'text', desc: 'Username', default: 'testuser' },
         { name: 'theme', type: 'color', desc: 'Theme color', default: '#336699' },
@@ -127,7 +127,7 @@ describe('chrome-options page loading', function () {
         { name: 'custom_alert', type: 'custom_sound', desc: 'Custom Sound' }
       ]);
 
-      chrome.options.addTab('Advanced', [
+      webExtensionOptions.addTab('Advanced', [
         { name: 'debug_logging', type: 'checkbox', desc: 'Enable debug logging' }
       ]);
     });
@@ -136,7 +136,7 @@ describe('chrome-options page loading', function () {
 <body class="chrome-bootstrap">
   <div class="frame">
     <div class="navigation">
-      <h1 class="chrome-options-title"></h1>
+      <h1 class="web-extension-options-title"></h1>
       <ul id="main-menu" class="menu"></ul>
       <ul class="menu about">
         <li><a href="#about">About</a></li>
@@ -170,7 +170,7 @@ describe('chrome-options page loading', function () {
   <script src="/dist/main.min.js" defer></script>
   <script>
     window.addEventListener('DOMContentLoaded', function() {
-      chrome.options.set('General Settings', [
+      webExtensionOptions.set('General Settings', [
         { name: 'simple_toggle', type: 'checkbox', desc: 'Enable toggle' }
       ]);
     });
@@ -179,7 +179,7 @@ describe('chrome-options page loading', function () {
 <body class="chrome-bootstrap">
   <div class="frame">
     <div class="navigation">
-      <h1 class="chrome-options-title"></h1>
+      <h1 class="web-extension-options-title"></h1>
       <ul id="main-menu" class="menu"></ul>
       <ul class="menu about">
         <li><a href="#about">About</a></li>
@@ -218,15 +218,15 @@ describe('chrome-options page loading', function () {
   <script src="/dist/main.min.js" defer></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      chrome.options.opts.title = false;
-      chrome.options.opts.about = null;
-      chrome.options.addTab('FallbackTab', [{ name: 'opt1', type: 'checkbox' }]);
+      webExtensionOptions.opts.title = false;
+      webExtensionOptions.opts.about = null;
+      webExtensionOptions.addTab('FallbackTab', [{ name: 'opt1', type: 'checkbox' }]);
     });
   </script>
 </head>
 <body class="chrome-bootstrap">
   <div class="frame">
-    <div class="navigation"><h1 class="chrome-options-title"></h1><ul id="main-menu" class="menu"></ul><ul class="menu about"><li><a href="#about">About</a></li></ul></div>
+    <div class="navigation"><h1 class="web-extension-options-title"></h1><ul id="main-menu" class="menu"></ul><ul class="menu about"><li><a href="#about">About</a></li></ul></div>
     <div class="mainview view"><div id="about"><header><h1>About</h1></header><div class="content"><p>Placeholder</p></div></div></div>
     <div class="save-container"><span class="auto">Saved!</span><button disabled>Save</button></div>
   </div>
@@ -247,7 +247,7 @@ describe('chrome-options page loading', function () {
   <script src="/dist/main.min.js" defer></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      chrome.options.addTab('Filtered', [
+      webExtensionOptions.addTab('Filtered', [
         {
           type: 'column',
           options: [
@@ -267,7 +267,7 @@ describe('chrome-options page loading', function () {
 </head>
 <body class="chrome-bootstrap">
   <div class="frame">
-    <div class="navigation"><h1 class="chrome-options-title"></h1><ul id="main-menu" class="menu"></ul><ul class="menu about"><li><a href="#about">About</a></li></ul></div>
+    <div class="navigation"><h1 class="web-extension-options-title"></h1><ul id="main-menu" class="menu"></ul><ul class="menu about"><li><a href="#about">About</a></li></ul></div>
     <div class="mainview view"><div id="about"><header><h1>About</h1></header><div class="content"><p>About</p></div></div></div>
     <div class="save-container"><span class="auto">Saved!</span><button disabled>Save</button></div>
   </div>
@@ -288,14 +288,14 @@ describe('chrome-options page loading', function () {
   <script src="/dist/main.min.js" defer></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      chrome.options.opts.autoSave = false;
-      chrome.options.addTab('ManualInitial', [{ name: 'opt', type: 'checkbox' }]);
+      webExtensionOptions.opts.autoSave = false;
+      webExtensionOptions.addTab('ManualInitial', [{ name: 'opt', type: 'checkbox' }]);
     });
   </script>
 </head>
 <body class="chrome-bootstrap">
   <div class="frame">
-    <div class="navigation"><h1 class="chrome-options-title"></h1><ul id="main-menu" class="menu"></ul><ul class="menu about"><li><a href="#about">About</a></li></ul></div>
+    <div class="navigation"><h1 class="web-extension-options-title"></h1><ul id="main-menu" class="menu"></ul><ul class="menu about"><li><a href="#about">About</a></li></ul></div>
     <div class="mainview view"><div id="about"><header><h1>About</h1></header><div class="content"><p>About</p></div></div></div>
     <div class="save-container"><span class="auto">Saved!</span><button disabled>Save</button></div>
   </div>
@@ -312,7 +312,7 @@ describe('chrome-options page loading', function () {
 
       if (
         urlPath.startsWith('/sounds/') ||
-        urlPath.startsWith('/node_modules/chrome-options/sounds/')
+        urlPath.startsWith('/node_modules/web-extension-options/sounds/')
       ) {
         const soundFile = path.basename(urlPath);
         const filePath = path.join(
@@ -465,7 +465,7 @@ describe('chrome-options page loading', function () {
 
     // Verify title and manifest metadata applied
     const titleText = await page.$eval(
-      '.chrome-options-title',
+      '.web-extension-options-title',
       (el) => el.textContent,
     );
     assert.strictEqual(titleText, 'Test Extension');
@@ -587,7 +587,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const checks = await page.evaluate(() => {
-        const { deepEqual } = chrome.options.util;
+        const { deepEqual } = webExtensionOptions.util;
         return {
           diffTypes: deepEqual(1, '1'),
           bothNull: deepEqual(null, null),
@@ -617,7 +617,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const checks = await page.evaluate(() => {
-        const { deepClone, deepEqual } = chrome.options.util;
+        const { deepClone, deepEqual } = webExtensionOptions.util;
         const num = deepClone(42);
         const nullVal = deepClone(null);
         const originalArr = [1, { val: 2 }];
@@ -649,7 +649,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
-        const { debounce } = chrome.options.util;
+        const { debounce } = webExtensionOptions.util;
         let callCount = 0;
         let receivedArg;
         const debounced = debounce(30, (arg) => {
@@ -675,7 +675,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const results = await page.evaluate(() => {
-        const h = chrome.options.h;
+        const h = webExtensionOptions.h;
         const el1 = h('[data-key="custom-val"][id=elem-id][data-mode=auto]');
         const el2 = h('.alpha.beta');
         const el3 = h('#heading-id');
@@ -709,7 +709,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const results = await page.evaluate(() => {
-        const h = chrome.options.h;
+        const h = webExtensionOptions.h;
         let wasClicked = false;
         const btn = h('button', {
           onclick: () => {
@@ -740,7 +740,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const results = await page.evaluate(() => {
-        const h = chrome.options.h;
+        const h = webExtensionOptions.h;
         const textParent = h('div', 'direct text');
         const arrParent = h('div', [h('span', 'a'), h('span', 'b')]);
         const singleNode = document.createElement('strong');
@@ -770,7 +770,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const results = await page.evaluate(async () => {
-        const dom = chrome.options.dom;
+        const dom = webExtensionOptions.dom;
 
         const elStandard = document.createElement('div');
         elStandard.style.height = '40px';
@@ -806,7 +806,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const results = await page.evaluate(async () => {
-        const dom = chrome.options.dom;
+        const dom = webExtensionOptions.dom;
         const table = document.createElement('table');
         const tbody = document.createElement('tbody');
         const tr1 = document.createElement('tr');
@@ -867,7 +867,7 @@ describe('chrome-options page loading', function () {
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
         let savedVal;
-        const textField = chrome.options.fields.text('initial', (val) => {
+        const textField = webExtensionOptions.fields.text('initial', (val) => {
           savedVal = val;
         });
         document.body.appendChild(textField);
@@ -876,7 +876,7 @@ describe('chrome-options page loading', function () {
         textField.dispatchEvent(new Event('input', { bubbles: true }));
         textField.dispatchEvent(new Event('change', { bubbles: true }));
 
-        const urlField = chrome.options.fields.url(
+        const urlField = webExtensionOptions.fields.url(
           'https://example.com',
           () => {},
         );
@@ -897,12 +897,12 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(() => {
-        const strSelect = chrome.options.fields.select('opt2', () => {}, {
+        const strSelect = webExtensionOptions.fields.select('opt2', () => {}, {
           options: ['opt1', 'opt2'],
         });
 
         let savedObjVal;
-        const objSelect = chrome.options.fields.select(
+        const objSelect = webExtensionOptions.fields.select(
           'k1',
           (val) => {
             savedObjVal = val;
@@ -933,7 +933,7 @@ describe('chrome-options page loading', function () {
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(() => {
         let savedRadioVal;
-        const radioGroup = chrome.options.fields.radio(
+        const radioGroup = webExtensionOptions.fields.radio(
           'a',
           (val) => {
             savedRadioVal = val;
@@ -954,9 +954,13 @@ describe('chrome-options page loading', function () {
         secondRadio.dispatchEvent(new Event('change', { bubbles: true }));
 
         // string option radio
-        const strRadioGroup = chrome.options.fields.radio('one', () => {}, {
-          options: ['one', 'two'],
-        });
+        const strRadioGroup = webExtensionOptions.fields.radio(
+          'one',
+          () => {},
+          {
+            options: ['one', 'two'],
+          },
+        );
         document.body.appendChild(strRadioGroup);
 
         return {
@@ -974,10 +978,13 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
-        const colorContainer = chrome.options.fields.color(
+        const colorContainer = webExtensionOptions.fields.color(
           '#336699',
           () => {},
-          { format: 'hex', default: '#112233' },
+          {
+            format: 'hex',
+            default: '#112233',
+          },
         );
         document.body.appendChild(colorContainer);
 
@@ -992,32 +999,32 @@ describe('chrome-options page loading', function () {
         }
 
         // Test format rgba, rgb, hsl, hsla
-        const rgbaContainer = chrome.options.fields.color(
+        const rgbaContainer = webExtensionOptions.fields.color(
           'rgba(10, 20, 30, 0.5)',
           () => {},
           { format: 'rgba' },
         );
-        const rgbContainer = chrome.options.fields.color(
+        const rgbContainer = webExtensionOptions.fields.color(
           'rgb(10, 20, 30)',
           () => {},
           { format: 'rgb' },
         );
-        const hslContainer = chrome.options.fields.color(
+        const hslContainer = webExtensionOptions.fields.color(
           'hsl(120, 50%, 50%)',
           () => {},
           { format: 'hsl' },
         );
-        const hslaContainer = chrome.options.fields.color(
+        const hslaContainer = webExtensionOptions.fields.color(
           'hsla(120, 50%, 50%, 0.8)',
           () => {},
           { format: 'hsla' },
         );
-        const emptyColorContainer = chrome.options.fields.color(
+        const emptyColorContainer = webExtensionOptions.fields.color(
           '',
           () => {},
           {},
         );
-        const nullAlphaColorContainer = chrome.options.fields.color(
+        const nullAlphaColorContainer = webExtensionOptions.fields.color(
           null,
           () => {},
           { format: 'rgba' },
@@ -1057,7 +1064,9 @@ describe('chrome-options page loading', function () {
 
         let threwUnsupported = false;
         try {
-          chrome.options.fields.color('#fff', () => {}, { format: 'cmyk' });
+          webExtensionOptions.fields.color('#fff', () => {}, {
+            format: 'cmyk',
+          });
         } catch (e) {
           threwUnsupported = e instanceof TypeError;
         }
@@ -1076,56 +1085,12 @@ describe('chrome-options page loading', function () {
       assert.strictEqual(result.threwUnsupported, true);
     });
 
-    it('supports custom plugin fields registered via chrome.options.fields', async () => {
-      await page.goto(`${serverUrl}/tabs.html`);
-      await page.waitForSelector('input[type="checkbox"]');
-      const result = await page.evaluate(() => {
-        let savedVal;
-        chrome.options.fields.rating = (value, save) => {
-          const select = document.createElement('select');
-          select.className = 'rating-plugin';
-          for (let i = 1; i <= 5; i++) {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = `${i} stars`;
-            select.appendChild(opt);
-          }
-          select.value = value || 1;
-          select.addEventListener('change', () => {
-            save(Number(select.value));
-          });
-          return select;
-        };
-
-        const ratingEl = chrome.options.addField(
-          3,
-          (val) => {
-            savedVal = val;
-          },
-          { type: 'rating' },
-        );
-
-        document.body.appendChild(ratingEl);
-        ratingEl.value = '5';
-        ratingEl.dispatchEvent(new Event('change'));
-
-        return {
-          hasPluginField: !!ratingEl,
-          initialVal: 3,
-          savedVal,
-        };
-      });
-
-      assert.strictEqual(result.hasPluginField, true);
-      assert.strictEqual(result.savedVal, 5);
-    });
-
     it('handles predefined sounds with and without allowNoSound', async () => {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(() => {
         let savedSound;
-        const noSoundContainer = chrome.options.fields.predefined_sound(
+        const noSoundContainer = webExtensionOptions.fields.predefined_sound(
           '',
           (val) => {
             savedSound = val;
@@ -1148,7 +1113,7 @@ describe('chrome-options page loading', function () {
         playBtn.click();
 
         // Without allowNoSound option
-        const standardContainer = chrome.options.fields.predefined_sound(
+        const standardContainer = webExtensionOptions.fields.predefined_sound(
           null,
           () => {},
           {},
@@ -1173,7 +1138,7 @@ describe('chrome-options page loading', function () {
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
         let savedVal;
-        const soundContainer = chrome.options.fields.custom_sound(
+        const soundContainer = webExtensionOptions.fields.custom_sound(
           'https://example.com/sound.wav',
           (val) => {
             savedVal = val;
@@ -1216,7 +1181,7 @@ describe('chrome-options page loading', function () {
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(() => {
         let savedFiles;
-        const fileInput = chrome.options.fields.file(null, (files) => {
+        const fileInput = webExtensionOptions.fields.file(null, (files) => {
           savedFiles = files;
         });
         document.body.appendChild(fileInput);
@@ -1245,7 +1210,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(() => {
-        const optHidden = chrome.options.addOption(
+        const optHidden = webExtensionOptions.addOption(
           'hidden_opt',
           true,
           () => {},
@@ -1255,7 +1220,7 @@ describe('chrome-options page loading', function () {
             hidden: true,
           },
         );
-        const optDisabled = chrome.options.addOption(
+        const optDisabled = webExtensionOptions.addOption(
           'disabled_opt',
           'val',
           () => {},
@@ -1265,7 +1230,7 @@ describe('chrome-options page loading', function () {
             disabled: true,
           },
         );
-        const optPreview = chrome.options.addOption(
+        const optPreview = webExtensionOptions.addOption(
           'preview_opt',
           true,
           () => {},
@@ -1299,7 +1264,7 @@ describe('chrome-options page loading', function () {
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
         let savedParent;
-        const parentOpt = chrome.options.addOption(
+        const parentOpt = webExtensionOptions.addOption(
           'parent_feature',
           { enabled: true, sub_opt: 'text' },
           (v) => {
@@ -1352,7 +1317,7 @@ describe('chrome-options page loading', function () {
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
         let savedCombo;
-        const comboOpt = chrome.options.addOption(
+        const comboOpt = webExtensionOptions.addOption(
           'combo_setting',
           null,
           (v) => {
@@ -1396,7 +1361,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(() => {
-        const colOpt = chrome.options.addOption(
+        const colOpt = webExtensionOptions.addOption(
           'col_layout',
           { c1: 'a', c2: 'b' },
           () => {},
@@ -1408,7 +1373,7 @@ describe('chrome-options page loading', function () {
             ],
           },
         );
-        const rowOpt = chrome.options.addOption(
+        const rowOpt = webExtensionOptions.addOption(
           'row_layout',
           { r1: 'x' },
           () => {},
@@ -1418,7 +1383,7 @@ describe('chrome-options page loading', function () {
           },
         );
 
-        const objOpt = chrome.options.addOption(
+        const objOpt = webExtensionOptions.addOption(
           'obj_layout',
           { o1: 'y' },
           () => {},
@@ -1432,11 +1397,16 @@ describe('chrome-options page loading', function () {
         objInput.value = 'updated_obj';
         objInput.dispatchEvent(new Event('input', { bubbles: true }));
         objInput.dispatchEvent(new Event('change', { bubbles: true }));
-        const h3Opt = chrome.options.addOption('h3_layout', null, () => {}, {
-          type: 'h3',
-          desc: 'Header Section',
-        });
-        const htmlOpt = chrome.options.addOption(
+        const h3Opt = webExtensionOptions.addOption(
+          'h3_layout',
+          null,
+          () => {},
+          {
+            type: 'h3',
+            desc: 'Header Section',
+          },
+        );
+        const htmlOpt = webExtensionOptions.addOption(
           'html_layout',
           null,
           () => {},
@@ -1469,7 +1439,7 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
-        const singleList = chrome.options.addOption(
+        const singleList = webExtensionOptions.addOption(
           'tag_list',
           ['tag-a'],
           () => {},
@@ -1487,7 +1457,7 @@ describe('chrome-options page loading', function () {
 
         // Multi-column list with collapsible header, column binding, and unique select
 
-        const multiList = chrome.options.base.list(
+        const multiList = webExtensionOptions.base.list(
           [{ action: 'notify', details: 'email', priority: 'high' }],
           () => {},
           {
@@ -1555,12 +1525,12 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(() => {
-        chrome.options.fields.test_validate = (_val, cb) => {
-          return chrome.options.h('input', {
+        webExtensionOptions.fields.test_validate = (_val, cb) => {
+          return webExtensionOptions.h('input', {
             oninput: (e) => cb(e.target.value, e),
           });
         };
-        const field = chrome.options.addField('valid', () => {}, {
+        const field = webExtensionOptions.addField('valid', () => {}, {
           type: 'test_validate',
           validate: (val) => val.length >= 4,
           desc: 'Validating field',
@@ -1577,7 +1547,7 @@ describe('chrome-options page loading', function () {
 
         // Test event timestamp ordering (older timestamp returns early)
         let callCount = 0;
-        chrome.options.fields.test_time = (_val, cb) => {
+        webExtensionOptions.fields.test_time = (_val, cb) => {
           const el = document.createElement('div');
           el.triggerEvents = () => {
             cb('first', { timeStamp: 200 });
@@ -1585,7 +1555,7 @@ describe('chrome-options page loading', function () {
           };
           return el;
         };
-        const timeField = chrome.options.addField(
+        const timeField = webExtensionOptions.addField(
           'initial',
           () => {
             callCount++;
@@ -1613,7 +1583,7 @@ describe('chrome-options page loading', function () {
       const result = await page.evaluate(() => {
         let threwMain = false;
         try {
-          chrome.options.addOption('bad', null, () => {}, {
+          webExtensionOptions.addOption('bad', null, () => {}, {
             type: 'nonexistent_option_type',
           });
         } catch (e) {
@@ -1622,7 +1592,7 @@ describe('chrome-options page loading', function () {
 
         let threwCheckbox = false;
         try {
-          chrome.options.base.checkboxNField(
+          webExtensionOptions.base.checkboxNField(
             {},
             () => {},
             {},
@@ -1648,12 +1618,12 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
-        chrome.options.opts.autoSave = false;
+        webExtensionOptions.opts.autoSave = false;
 
         window.chrome.storage.sync.set = () => {};
 
         // Add a tab with autoSave false
-        chrome.options.addTab('Manual', [
+        webExtensionOptions.addTab('Manual', [
           { name: 'manual_chk', type: 'checkbox', default: true },
         ]);
 
@@ -1725,8 +1695,8 @@ describe('chrome-options page loading', function () {
       await page.goto(`${serverUrl}/tabs.html`);
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
-        chrome.options.opts.autoSave = false;
-        chrome.options.addTab('MultiManual', [
+        webExtensionOptions.opts.autoSave = false;
+        webExtensionOptions.addTab('MultiManual', [
           { name: 'm_opt1', type: 'checkbox', default: true },
           { name: 'm_opt2', type: 'checkbox', default: true },
         ]);
@@ -1774,7 +1744,7 @@ describe('chrome-options page loading', function () {
         const openInTab = document.body.classList.contains('open-in-tab');
 
         return {
-          titleMatches: titleText === 'chrome options',
+          titleMatches: titleText === 'web extension options',
           titleHidden: !hasShowTitle,
           aboutMatches: aboutText === 'Manifest fallback description',
           notOpenInTab: !openInTab,
@@ -1852,7 +1822,7 @@ describe('chrome-options page loading', function () {
       await page.waitForSelector('input[type="checkbox"]');
       const result = await page.evaluate(async () => {
         // 1. Initial empty list with first option
-        const emptyList = chrome.options.base.list([], () => {}, {
+        const emptyList = webExtensionOptions.base.list([], () => {}, {
           first: [{ name: 'f1', type: 'text' }],
           fields: [{ name: 'f1', type: 'text' }],
         });
@@ -1863,7 +1833,7 @@ describe('chrome-options page loading', function () {
         // 2. Bound columns with consecutive bindTo fields sharing the column header
         // Start with mode: 'c' so initially shown is false and checkColumns(true) hides $head with display = 'none'
 
-        const boundTable = chrome.options.base.list(
+        const boundTable = webExtensionOptions.base.list(
           [
             { mode: 'c', choice: 'r1', optA: 'valA', optB: '' },
             { mode: 'c', choice: 'r2', optA: '', optB: '' },
@@ -2015,7 +1985,7 @@ describe('chrome-options page loading', function () {
 
         // Also test sortable with options.first
         let firstListSaved = false;
-        const firstTable = chrome.options.base.list(
+        const firstTable = webExtensionOptions.base.list(
           [{ text: 'f1' }, { text: 'f2' }, { text: 'f3' }],
           () => {
             firstListSaved = true;
@@ -2061,8 +2031,8 @@ describe('chrome-options page loading', function () {
 
         // 4. Test saveDefaults on checkbox with sub-options
         let defaultSavedVal;
-        chrome.options.opts.saveDefaults = true;
-        chrome.options.addOption(
+        webExtensionOptions.opts.saveDefaults = true;
+        webExtensionOptions.addOption(
           'def_test',
           undefined,
           (v) => {
@@ -2107,7 +2077,7 @@ describe('chrome-options page loading', function () {
       const result = await page.evaluate(async () => {
         // Single field list save (line 447: values = newValue)
         let savedSingle;
-        const single = chrome.options.base.singleFieldList(
+        const single = webExtensionOptions.base.singleFieldList(
           ['initial_val'],
           (v) => {
             savedSingle = v;
@@ -2125,7 +2095,7 @@ describe('chrome-options page loading', function () {
 
         // List row with type column and row (lines 518-521)
 
-        const layoutList = chrome.options.base.list(
+        const layoutList = webExtensionOptions.base.list(
           [{ col_val: 'c1', row_val: 'r1' }],
           () => {},
           {
@@ -2146,7 +2116,7 @@ describe('chrome-options page loading', function () {
         // Unknown type in list row (line 523)
         let threwInvalidListField = false;
         try {
-          chrome.options.base.list([], () => {}, {
+          webExtensionOptions.base.list([], () => {}, {
             fields: [{ type: 'invalid_field_xyz' }],
           });
         } catch (e) {
@@ -2157,7 +2127,7 @@ describe('chrome-options page loading', function () {
 
         // Option without type defaulting to checkbox (line 58)
 
-        const noTypeContainer = chrome.options.addOption(
+        const noTypeContainer = webExtensionOptions.addOption(
           'no_type_field',
           false,
           () => {},
@@ -2167,7 +2137,7 @@ describe('chrome-options page loading', function () {
 
         // Suboption change propagating to parent save callback (lines 213-214)
         let subSaved;
-        const objOption = chrome.options.addOption(
+        const objOption = webExtensionOptions.addOption(
           'nested_parent',
           { sub_item: 'a' },
           (v) => {
@@ -2187,7 +2157,7 @@ describe('chrome-options page loading', function () {
 
         // List with unique select options and animated bound column reveal (lines 487-493, 544-546)
 
-        const animTable = chrome.options.base.list(
+        const animTable = webExtensionOptions.base.list(
           [{ mode: 'x', bound_col: 'val 1' }],
           () => {},
           {
@@ -2223,20 +2193,24 @@ describe('chrome-options page loading', function () {
         await new Promise((resolve) => setTimeout(resolve, 650));
 
         // Singleline option styling (line 223)
-        const singlelineOpt = chrome.options.addLabelNField('val', () => {}, {
-          singleline: true,
-          desc: 'Single Line',
-        });
+        const singlelineOpt = webExtensionOptions.addLabelNField(
+          'val',
+          () => {},
+          {
+            singleline: true,
+            desc: 'Single Line',
+          },
+        );
         document.body.appendChild(singlelineOpt);
 
         // Falsy key attribute check (line 74)
-        const falsyKeyOpt = chrome.options.addOption('', 'val', () => {}, {
+        const falsyKeyOpt = webExtensionOptions.addOption('', 'val', () => {}, {
           name: 'falsy_key',
         });
         document.body.appendChild(falsyKeyOpt);
 
         // Suboption without name in object (line 200)
-        const noNameSubOpt = chrome.options.addOption(
+        const noNameSubOpt = webExtensionOptions.addOption(
           'obj_noname',
           {},
           () => {},
@@ -2249,7 +2223,7 @@ describe('chrome-options page loading', function () {
         document.body.appendChild(noNameSubOpt);
 
         // Single field list with row undefined taking field default (line 514)
-        const defaultSingleList = chrome.options.base.list(
+        const defaultSingleList = webExtensionOptions.base.list(
           [undefined],
           () => {},
           {
@@ -2259,7 +2233,7 @@ describe('chrome-options page loading', function () {
         document.body.appendChild(defaultSingleList);
 
         // addField with unsupported type returning undefined (line 607)
-        const missingField = chrome.options.addField('val', () => {}, {
+        const missingField = webExtensionOptions.addField('val', () => {}, {
           type: 'unsupported_type',
         });
 

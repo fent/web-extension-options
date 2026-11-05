@@ -1,8 +1,7 @@
-/* global chrome */
-
+import { options } from './base.js';
 import h from './hyperscript.js';
 
-chrome.options.fields.predefined_sound = (value, save, option) => {
+options.fields.predefined_sound = (value, save, option) => {
   const playSound = () => {
     if (!value) {
       $play.classList.add('disabled');
@@ -10,7 +9,7 @@ chrome.options.fields.predefined_sound = (value, save, option) => {
     }
     $play.classList.remove('disabled');
     const audio = new Audio();
-    audio.src = `node_modules/chrome-options/sounds/${value}.mp3`;
+    audio.src = `node_modules/web-extension-options/sounds/${value}.mp3`;
     audio.onerror = console.error;
     audio.play();
   };
@@ -18,7 +17,7 @@ chrome.options.fields.predefined_sound = (value, save, option) => {
   const $container = h('span.predefined-sound');
   const $play = h('span.play', { onclick: playSound, innerHTML: '&#9654;' });
 
-  const options = [
+  const soundList = [
     'Basso',
     'Bip',
     'Blow',
@@ -50,13 +49,13 @@ chrome.options.fields.predefined_sound = (value, save, option) => {
   ];
 
   if (option.allowNoSound) {
-    options.unshift({ value: '', desc: 'Select' });
+    soundList.unshift({ value: '', desc: 'Select' });
     value = value || '';
     if (!value) {
       $play.classList.add('disabled');
     }
   } else {
-    value = value || options[0];
+    value = value || soundList[0];
   }
 
   const saveField = (newValue, e) => {
@@ -64,7 +63,9 @@ chrome.options.fields.predefined_sound = (value, save, option) => {
     save(newValue, e);
   };
 
-  const $field = chrome.options.fields.select(value, saveField, { options });
+  const $field = options.fields.select(value, saveField, {
+    options: soundList,
+  });
   $field.addEventListener('change', playSound);
   $container.append($field, $play);
 

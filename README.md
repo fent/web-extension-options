@@ -1,16 +1,16 @@
-# chrome-options
+# web-extension-options
 
-Option pages should be simple to create given a structure of your options, ~and look like Chrome's options~.
+Option pages should be simple to create given a structure of your options, with support for Chrome, Firefox, and other WebExtensions browsers.
 
-[![npm](https://img.shields.io/npm/v/chrome-options)](https://www.npmjs.com/package/chrome-options)
-[![Chrome CI](https://github.com/fent/chrome-options/actions/workflows/test.yml/badge.svg)](https://github.com/fent/chrome-options/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/fent/chrome-options/branch/master/graph/badge.svg)](https://codecov.io/gh/fent/chrome-options)
+[![npm](https://img.shields.io/npm/v/web-extension-options)](https://www.npmjs.com/package/web-extension-options)
+[![CI](https://github.com/fent/web-extension-options/actions/workflows/test.yml/badge.svg)](https://github.com/fent/web-extension-options/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/fent/web-extension-options/branch/master/graph/badge.svg)](https://codecov.io/gh/fent/web-extension-options)
 
 ![example](images/example.png)
 
 Screenshot is from extension [veefeed](https://github.com/fent/chrome-veefeed)
 
-Here's a [demo](https://fent.github.io/chrome-options/). You can also look at the [`gh-pages`](https://github.com/fent/chrome-options/tree/gh-pages) branch for what an example extension looks like.
+Here's a [demo](https://fent.github.io/web-extension-options/). You can also look at the [`gh-pages`](https://github.com/fent/web-extension-options/tree/gh-pages) branch for what an example extension looks like.
 
 This library uses [chrome-bootstrap](https://github.com/better-history/chrome-bootstrap) for styling.
 
@@ -23,10 +23,10 @@ Recommended that you create an options folder in your extension, keep things org
     cd options
 
 
-Download chrome-options
+Download web-extension-options
 
-    npm install chrome-options
-    ln node_modules/chrome-options/options.html .
+    npm install web-extension-options
+    ln node_modules/web-extension-options/options.html .
     touch custom.css
     touch options.js
 
@@ -37,7 +37,7 @@ Add options page to `manifest.json`. `open_in_tab` set to `true` or `false` are 
       "open_in_tab": false
     }
 
-Needs `storage` permission. Options are saved to [`chrome.storage.sync`](https://developer.chrome.com/extensions/storage#property-sync).
+Needs `storage` permission. Options are automatically saved to `browser.storage.sync` or `chrome.storage.sync` (with fallback to `local` or `localStorage`).
 
     "permissions": [
       "storage"
@@ -47,7 +47,7 @@ If you'll be using the [predefined_sound](#predefined_sound) fields, and want to
 
     "web_accessible_resources": [
       {
-        "resources": ["options/node_modules/chrome-options/sounds/*.mp3"],
+        "resources": ["options/node_modules/web-extension-options/sounds/*.mp3"],
         "matches": ["<all_urls>"]
       }
     ]
@@ -59,13 +59,13 @@ Afterwards, you can start setting up your options page by editing `options.js`, 
 
 # Setup
 
-Use only one of the following two functions to setup your options. If you're planning on using multi tab form, use `chrome.options.addTab()`, called once for each tab. Otherwise, use `chrome.options.set()`.
+Use only one of the following two functions to setup your options. If you're planning on using multi tab form, use `webExtensionOptions.addTab()`, called once for each tab. Otherwise, use `webExtensionOptions.set()`.
 
-### `chrome.options.set([description], options)`
+### `webExtensionOptions.set([description], options)`
 * `description` - Will be displayed at the top of the page.
 * `options` - List of options.
 
-### `chrome.options.addTab(name, [description], options)`
+### `webExtensionOptions.addTab(name, [description], options)`
 * `string` - `name` - Name of the tab. Will be prepended along with "." to each option's name that's displayed under this tab.
 * `string` - `description` - Will be placed on top of the page when tab is viewed.
 * `Array.<Object>` - `options` - List of options.
@@ -121,7 +121,7 @@ Uses [this color picker library](https://github.com/tovic/color-picker).
 
 ![predefined_sound](images/field_predefined_sound.png)
 
-Includes 29 sound alert files (~191 KB total in MP3 format). See the [Advanced tab demo](https://fent.github.io/chrome-options/#advanced) for a live example.
+Includes 29 sound alert files (~191 KB total in MP3 format). See the [Advanced tab demo](https://fent.github.io/web-extension-options/#advanced) for a live example.
 
 * `boolean` - `allowNoSound` - Adds a no sound option to the top of the select field.
 
@@ -208,7 +208,7 @@ Places HTML content directly into the page.
 
 You can add custom containers with multiple fields, other types of form fields that are not yet supported, or change current fields to use your preferred libraries.
 
-Current basic type of fields can be accessed through `chrome.options.fields`. They're functions that are called with
+Current basic type of fields can be accessed through `webExtensionOptions.fields`. They're functions that are called with
 
 * `Object` - The current value of this option.
 * `Function` - Should be called with new value when this option is updated, and the event object if any.
@@ -218,18 +218,18 @@ You can add your own to this object, [here's an example](https://github.com/fent
 
 To use one of the already existing basic fields with your custom field, you can call the following functions.
 
-`chrome.options.addField(value, save, option)`
-`chrome.options.addLabelNField(value, save, option)`
+`webExtensionOptions.addField(value, save, option)`
+`webExtensionOptions.addLabelNField(value, save, option)`
 
 
 # Options
 
 A few options are supported.
 
-* `chrome.options.opts.title` - Title of the page if opening the page in a new tab. If not set, will set the title to the extension's name from the manifest. Set to `false` if you don't want a title displayed.
-* `chrome.options.opts.about` - Contents of the About tab. If not set, will set the contents to the extension's description from the manifest. Can be an html string. Set to `false` if you don't want this tab at all.
-* `chrome.options.opts.autoSave` - If `true`, will save options as they are changed. Otherwise, a button will be shown on the bottom left of the page for saving. Defaults to `true`.
-* `chrome.options.opts.saveDefaults` - If `true`, will save any options that have defaults set, if those options have never been saved before. Can be useful if you only want to keep defaults in your options page, and not in background and/or content pages for when your extension is first installed. Defaults to `true`.
+* `webExtensionOptions.opts.title` - Title of the page if opening the page in a new tab. If not set, will set the title to the extension's name from the manifest. Set to `false` if you don't want a title displayed.
+* `webExtensionOptions.opts.about` - Contents of the About tab. If not set, will set the contents to the extension's description from the manifest. Can be an html string. Set to `false` if you don't want this tab at all.
+* `webExtensionOptions.opts.autoSave` - If `true`, will save options as they are changed. Otherwise, a button will be shown on the bottom left of the page for saving. Defaults to `true`.
+* `webExtensionOptions.opts.saveDefaults` - If `true`, will save any options that have defaults set, if those options have never been saved before. Can be useful if you only want to keep defaults in your options page, and not in background and/or content pages for when your extension is first installed. Defaults to `true`.
 
 
 # Embed Options Page
@@ -250,8 +250,8 @@ You can also choose to display one option, suboption, or part of an option, by s
 
 Try it in the demo:
 
-- <https://fent.github.io/chrome-options/?hideSidebar&hideTabTitle#general.profile>
-- <https://fent.github.io/chrome-options/?hideSidebar&hideTabTitle#general.profile.party>
+- <https://fent.github.io/web-extension-options/?hideSidebar&hideTabTitle#general.profile>
+- <https://fent.github.io/web-extension-options/?hideSidebar&hideTabTitle#general.profile.party>
 
 
 # Roadmap
@@ -263,7 +263,7 @@ Try it in the demo:
   * File upload
   * Image upload
 * Easier way to include other scripts
-* Different themes
-* Firefox? Web extensions
+* Different themes / Dark mode
+* Cross-browser support (Chrome, Firefox, Safari, Edge)
 * Migrating options from other options
 * Migrating structure of options

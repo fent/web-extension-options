@@ -1,4 +1,4 @@
-name: Chrome CI
+name: CI
 
 on: [push, pull_request]
 

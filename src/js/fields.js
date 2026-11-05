@@ -1,12 +1,11 @@
-/* global chrome */
-
+import { options } from './base.js';
 import h from './hyperscript.js';
 import { debounce } from './util.js';
 
 import './color-picker.js';
 import './predefined-sound.js';
 
-chrome.options.fields.checkbox = (value, save) => {
+options.fields.checkbox = (value, save) => {
   const $checkbox = h('input[type=checkbox]');
 
   if (value != null) {
@@ -20,7 +19,7 @@ chrome.options.fields.checkbox = (value, save) => {
   return $checkbox;
 };
 
-chrome.options.fields.text = (value, save) => {
+options.fields.text = (value, save) => {
   const $textbox = h('input[type=text]');
   if (value !== undefined) {
     $textbox.value = value;
@@ -35,13 +34,13 @@ chrome.options.fields.text = (value, save) => {
   return $textbox;
 };
 
-chrome.options.fields.url = (value, save, option) => {
-  const $field = chrome.options.fields.text(value, save, option);
+options.fields.url = (value, save, option) => {
+  const $field = options.fields.text(value, save, option);
   $field.setAttribute('type', 'url');
   return $field;
 };
 
-chrome.options.fields.select = (value, save, option) => {
+options.fields.select = (value, save, option) => {
   const valueMap = {};
   const $select = h('select', {
     onchange: (e) => {
@@ -63,7 +62,7 @@ chrome.options.fields.select = (value, save, option) => {
   return $select;
 };
 
-chrome.options.fields.radio = (value, save, option) => {
+options.fields.radio = (value, save, option) => {
   const $container = h('.radio-options');
   const name = (~~(Math.random() * 1e9)).toString(36);
   option.options.forEach((option) => {
@@ -91,7 +90,7 @@ chrome.options.fields.radio = (value, save, option) => {
   return $container;
 };
 
-chrome.options.fields.custom_sound = (value, save) => {
+options.fields.custom_sound = (value, save) => {
   const $container = h('span.custom-sound');
 
   const saveField = (newValue, e) => {
@@ -105,7 +104,7 @@ chrome.options.fields.custom_sound = (value, save) => {
     audio.play();
   };
 
-  const $field = chrome.options.addField(value, saveField, { type: 'url' });
+  const $field = options.addField(value, saveField, { type: 'url' });
   $field.addEventListener('keypress', (e) => {
     if (e.keyCode === 13) {
       playSound();
@@ -119,7 +118,7 @@ chrome.options.fields.custom_sound = (value, save) => {
   return $container;
 };
 
-chrome.options.fields.file = (value, save) => {
+options.fields.file = (value, save) => {
   return h('input[type=file]', {
     value,
     onchange: (e) => {

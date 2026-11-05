@@ -1,18 +1,20 @@
 {
-  "name": "chrome-options",
+  "name": "web-extension-options",
   "main": "dist/main.min.js",
   "version": "1.0.0",
-  "description": "Options page for your Chrome extension",
+  "description": "Options page for your Web Extension",
   "author": "fent (https://github.com/fent)",
   "keywords": [
-    "chrome",
+    "webextension",
     "extension",
-    "options"
+    "options",
+    "chrome",
+    "firefox"
   ],
-  "homepage": "https://github.com/fent/chrome-options",
+  "homepage": "https://github.com/fent/web-extension-options",
   "repository": {
     "type": "git",
-    "url": "git://github.com/fent/chrome-options.git"
+    "url": "git://github.com/fent/web-extension-options.git"
   },
   "license": "MIT",
   "files": [
@@ -39,7 +41,7 @@
         "@semantic-release/github",
         {
           "assets": [
-            "chrome-options.zip"
+            "web-extension-options.zip"
           ]
         }
       ]

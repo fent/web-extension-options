@@ -1,11 +1,12 @@
-/* global chrome, CP */
+/* global CP */
 
 require('c-p');
 
+import { options } from './base.js';
 import h from './hyperscript.js';
 import { debounce } from './util.js';
 
-chrome.options.fields.color = (value, save, option = {}) => {
+options.fields.color = (value, save, option = {}) => {
   let first = true;
   const format = option.format || 'rgba';
   if (!['rgb', 'rgba', 'hsl', 'hsla', 'hex'].includes(format)) {
@@ -59,7 +60,7 @@ chrome.options.fields.color = (value, save, option = {}) => {
       },
     }),
   );
-  const $field = chrome.options.fields.text(value, () => {
+  const $field = options.fields.text(value, () => {
     if ($alpha) {
       $alpha.value = getAlpha($field.value);
     }
