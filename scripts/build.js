@@ -5,7 +5,8 @@ const path = require('node:path');
 const isDev = process.argv.includes('--dev');
 const isWatch = process.argv.includes('--watch');
 
-const distDir = path.resolve(__dirname, 'dist');
+const rootDir = path.resolve(__dirname, '..');
+const distDir = path.resolve(rootDir, 'dist');
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
 }
@@ -13,8 +14,8 @@ if (!fs.existsSync(distDir)) {
 async function build() {
   // 1. Bundle JS
   const jsOptions = {
-    entryPoints: ['src/js/chrome-options.js'],
-    outfile: 'dist/main.min.js',
+    entryPoints: [path.resolve(rootDir, 'src/js/chrome-options.js')],
+    outfile: path.resolve(distDir, 'main.min.js'),
     bundle: true,
     format: 'iife',
     sourcemap: true,
@@ -26,8 +27,8 @@ async function build() {
 
   // 2. Bundle CSS
   const cssOptions = {
-    entryPoints: ['src/css/chrome-options.css'],
-    outfile: 'dist/styles.min.css',
+    entryPoints: [path.resolve(rootDir, 'src/css/chrome-options.css')],
+    outfile: path.resolve(distDir, 'styles.min.css'),
     bundle: true,
     sourcemap: true,
     minify: !isDev,

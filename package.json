@@ -21,9 +21,10 @@
     "options.html"
   ],
   "scripts": {
-    "build": "node build.js",
-    "build:dev": "node build.js --dev",
-    "watch": "node build.js --watch",
+    "build": "node scripts/build.js",
+    "build:dev": "node scripts/build.js --dev",
+    "build:zip": "node scripts/build-zip.js",
+    "watch": "node scripts/build.js --watch",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "pretest": "npm run build",
@@ -38,10 +39,7 @@
         "@semantic-release/github",
         {
           "assets": [
-            {
-              "path": "dist/**",
-              "label": "Distribution files"
-            }
+            "chrome-options.zip"
           ]
         }
       ]

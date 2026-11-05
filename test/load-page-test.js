@@ -321,7 +321,7 @@ describe('chrome-options page loading', function () {
           decodeURIComponent(soundFile),
         );
         if (fs.existsSync(filePath)) {
-          res.writeHead(200, { 'Content-Type': 'audio/wav' });
+          res.writeHead(200, { 'Content-Type': 'audio/mpeg' });
           res.end(fs.readFileSync(filePath));
           return;
         }
@@ -1174,7 +1174,7 @@ describe('chrome-options page loading', function () {
       const result = await page.evaluate(async () => {
         let savedVal;
         const soundContainer = chrome.options.fields.custom_sound(
-          '/sounds/Basso.wav',
+          'https://example.com/sound.wav',
           (val) => {
             savedVal = val;
           },
@@ -1182,7 +1182,7 @@ describe('chrome-options page loading', function () {
         document.body.appendChild(soundContainer);
 
         const input = soundContainer.querySelector('input');
-        input.value = 'http://localhost/sounds/Hero.wav';
+        input.value = 'https://example.com/hero.wav';
         input.dispatchEvent(new Event('input', { bubbles: true }));
 
         // Press Enter key to trigger play
@@ -1208,7 +1208,7 @@ describe('chrome-options page loading', function () {
 
       assert.strictEqual(result.hasPlayBtn, true);
       assert.strictEqual(result.hasInput, true);
-      assert.strictEqual(result.savedVal, 'http://localhost/sounds/Hero.wav');
+      assert.strictEqual(result.savedVal, 'https://example.com/hero.wav');
     });
 
     it('handles file inputs and persists selected file references', async () => {
@@ -1632,7 +1632,10 @@ describe('chrome-options page loading', function () {
           threwCheckbox = e.message.includes('Could not find option type');
         }
 
-        return { threwMain, threwCheckbox };
+        return {
+          threwMain,
+          threwCheckbox,
+        };
       });
 
       assert.strictEqual(result.threwMain, true);

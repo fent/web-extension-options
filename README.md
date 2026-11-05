@@ -47,7 +47,7 @@ If you'll be using the [predefined_sound](#predefined_sound) fields, and want to
 
     "web_accessible_resources": [
       {
-        "resources": ["options/node_modules/chrome-options/sounds/*.wav"],
+        "resources": ["options/node_modules/chrome-options/sounds/*.mp3"],
         "matches": ["<all_urls>"]
       }
     ]
@@ -120,6 +120,8 @@ Uses [this color picker library](https://github.com/tovic/color-picker).
 ### predefined_sound
 
 ![predefined_sound](images/field_predefined_sound.png)
+
+Includes 29 sound alert files (~191 KB total in MP3 format). See the [Advanced tab demo](https://fent.github.io/chrome-options/#advanced) for a live example.
 
 * `boolean` - `allowNoSound` - Adds a no sound option to the top of the select field.
 
@@ -260,10 +262,8 @@ Try it in the demo:
   * Date picker
   * File upload
   * Image upload
-* Optionally include sound files in installation
 * Easier way to include other scripts
 * Different themes
 * Firefox? Web extensions
-* Firefox? 
 * Migrating options from other options
 * Migrating structure of options
