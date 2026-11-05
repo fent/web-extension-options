@@ -230,11 +230,13 @@ A few options are supported.
 * `webExtensionOptions.opts.about` - Contents of the About tab. If not set, will set the contents to the extension's description from the manifest. Can be an html string. Set to `false` if you don't want this tab at all.
 * `webExtensionOptions.opts.autoSave` - If `true`, will save options as they are changed. Otherwise, a button will be shown on the bottom left of the page for saving. Defaults to `true`.
 * `webExtensionOptions.opts.saveDefaults` - If `true`, will save any options that have defaults set, if those options have never been saved before. Can be useful if you only want to keep defaults in your options page, and not in background and/or content pages for when your extension is first installed. Defaults to `true`.
+* `webExtensionOptions.opts.storage` - Storage configuration: a string area name (e.g. `'sync'`, `'local'`), or a custom storage adapter object providing `get(keys, callback)` and `set(items, callback)` methods (supporting Promises or callbacks). When unset, auto-detects `browser.storage.sync/local`, `chrome.storage.sync/local`, or falls back to `localStorage`/in-memory storage.
+* `webExtensionOptions.opts.manifest` - Custom manifest object to use instead of reading metadata from the WebExtension runtime.
 
 
 # Embed Options Page
 
-In case you'd like to embed your option page, or part of it, inside a browser action, page action, or another page, you can do so with an iframe. You can get the option page url with `chrome.runtime.getURL("/options/options.html")`.
+In case you'd like to embed your option page, or part of it, inside a browser action, page action, or another page, you can do so with an iframe. You can get the option page url with `(typeof browser !== 'undefined' ? browser : chrome).runtime.getURL("/options/options.html")`.
 
 You can use the following query parameters to help you customize what specifically you want users to see.
 

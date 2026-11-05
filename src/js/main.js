@@ -20,9 +20,6 @@ options.opts = {
   // Set to `false` if you don't want an About page.
   about: null,
 
-  // Set this to customize the description if not reading from manifest.
-  description: null,
-
   // True if you want settings to be saved as they are changed.
   autoSave: true,
 
@@ -31,6 +28,230 @@ options.opts = {
   // in one place, without having to check if an option is set.
   // Note that it requires the options page to be visited once.
   saveDefaults: true,
+
+  // Pluggable storage: area name (e.g. 'sync', 'local', 'managed') or
+  // custom storage object with get() and set() methods. Defaults to auto-detecting
+  // browser.storage.sync, chrome.storage.sync, or falling back to localStorage.
+  storage: null,
+
+  // Custom manifest object to use instead of reading from extension runtime.
+  manifest: null,
+};
+
+const normalizeKeys = (keys) => {
+  if (keys === null || keys === undefined || typeof keys === 'function') {
+    return null;
+  }
+  if (typeof keys === 'string') {
+    return [keys];
+  }
+  if (Array.isArray(keys)) {
+    return keys;
+  }
+  if (typeof keys === 'object') {
+    return Object.keys(keys);
+  }
+  return [String(keys)];
+};
+
+const applyDefaults = (result, defaults) => {
+  if (!defaults || typeof defaults !== 'object' || Array.isArray(defaults)) {
+    return result || {};
+  }
+  const merged = Object.assign({}, defaults);
+  for (const [k, v] of Object.entries(result || {})) {
+    if (v !== undefined) {
+      merged[k] = v;
+    }
+  }
+  return merged;
+};
+
+const memoryStore = {};
+const defaultFallbackStorage = {
+  get: (keys, cb) => {
+    if (typeof keys === 'function') {
+      cb = keys;
+      keys = null;
+    }
+    let result = {};
+    const defaults =
+      keys && typeof keys === 'object' && !Array.isArray(keys) ? keys : null;
+    let targetKeys = normalizeKeys(keys);
+
+    if (targetKeys === null) {
+      const allKeys = new Set(Object.keys(memoryStore));
+      try {
+        if (typeof localStorage !== 'undefined') {
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k) {
+              allKeys.add(k);
+            }
+          }
+        }
+      } catch {
+        // ignore storage errors
+      }
+      targetKeys = Array.from(allKeys);
+    }
+
+    targetKeys.forEach((key) => {
+      let item = null;
+      try {
+        if (typeof localStorage !== 'undefined') {
+          item = localStorage.getItem(key);
+        }
+      } catch {
+        item = null;
+      }
+      if (item !== null) {
+        try {
+          result[key] = JSON.parse(item);
+        } catch {
+          result[key] = item;
+        }
+      } else if (Object.hasOwn(memoryStore, key)) {
+        result[key] = memoryStore[key];
+      }
+    });
+
+    if (defaults) {
+      result = applyDefaults(result, defaults);
+    }
+
+    if (cb) {
+      cb(result);
+    }
+    return result;
+  },
+  set: (items, cb) => {
+    let saved = false;
+    try {
+      if (typeof localStorage !== 'undefined') {
+        for (const [key, value] of Object.entries(items || {})) {
+          localStorage.setItem(key, JSON.stringify(value));
+        }
+        saved = true;
+      }
+    } catch {
+      saved = false;
+    }
+    if (!saved) {
+      for (const [key, value] of Object.entries(items || {})) {
+        memoryStore[key] = value;
+      }
+    }
+    if (cb) {
+      cb();
+    }
+  },
+};
+
+const invokeStorageMethod = (fn, args, onDone) => {
+  let called = false;
+  const done = (val) => {
+    if (!called) {
+      called = true;
+      onDone(val);
+    }
+  };
+
+  try {
+    const ret = fn(...args, done);
+    if (ret && typeof ret.then === 'function') {
+      ret.then(done).catch((err) => {
+        console.error(err);
+        done(undefined);
+      });
+    } else if (ret !== undefined && !called) {
+      done(ret);
+    }
+  } catch (err) {
+    console.error(err);
+    done(undefined);
+  }
+};
+
+const resolveStorageTarget = (target) => {
+  if (target && typeof target === 'object') {
+    return target;
+  }
+  if (typeof target === 'string') {
+    if (typeof browser !== 'undefined' && browser?.storage?.[target]) {
+      return browser.storage[target];
+    }
+    if (typeof chrome !== 'undefined' && chrome?.storage?.[target]) {
+      return chrome.storage[target];
+    }
+    return defaultFallbackStorage;
+  }
+  if (typeof browser !== 'undefined') {
+    if (browser?.storage?.sync) return browser.storage.sync;
+    if (browser?.storage?.local) return browser.storage.local;
+  }
+  if (typeof chrome !== 'undefined') {
+    if (chrome?.storage?.sync) return chrome.storage.sync;
+    if (chrome?.storage?.local) return chrome.storage.local;
+  }
+  return defaultFallbackStorage;
+};
+
+let cachedStorageTarget = null;
+let cachedStorageAdapter = null;
+
+const getStorage = () => {
+  const target = resolveStorageTarget(options.opts.storage);
+
+  if (cachedStorageTarget === target && cachedStorageAdapter) {
+    return cachedStorageAdapter;
+  }
+
+  cachedStorageTarget = target;
+  cachedStorageAdapter = {
+    get: (keys, callback) => {
+      if (typeof keys === 'function') {
+        callback = keys;
+        keys = null;
+      }
+      const query = keys === undefined ? null : keys;
+      invokeStorageMethod(target.get.bind(target), [query], (result) => {
+        let res = result || {};
+        if (keys && typeof keys === 'object' && !Array.isArray(keys)) {
+          res = applyDefaults(res, keys);
+        }
+        if (callback) {
+          callback(res);
+        }
+      });
+    },
+    set: (items, callback) => {
+      invokeStorageMethod(target.set.bind(target), [items], () => {
+        if (callback) {
+          callback();
+        }
+      });
+    },
+  };
+
+  return cachedStorageAdapter;
+};
+
+const getManifest = () => {
+  if (options.opts.manifest) {
+    return options.opts.manifest;
+  }
+  try {
+    if (typeof browser !== 'undefined' && browser?.runtime?.getManifest) {
+      return browser.runtime.getManifest();
+    }
+    if (typeof chrome !== 'undefined' && chrome?.runtime?.getManifest) {
+      return chrome.runtime.getManifest();
+    }
+  } catch {
+    // ignore runtime errors
+  }
+  return {};
 };
 
 const $menu = document.querySelector('#main-menu');
@@ -98,7 +319,7 @@ const setup = () => {
   if (setupRan) {
     return;
   }
-  const manifest = chrome.runtime.getManifest();
+  const manifest = getManifest();
 
   const extensionName = options.opts.title || manifest.name || 'web extension';
   document.querySelector('title').textContent = `${extensionName} options`;
@@ -110,7 +331,7 @@ const setup = () => {
     document.body.classList.add('show-title');
   }
 
-  const description = options.opts.description || manifest.description;
+  const description = manifest.description;
   if (
     options.opts.about !== false &&
     (options.opts.about || description) &&
@@ -151,6 +372,9 @@ const setup = () => {
   setupRan = true;
 };
 
+const isLayoutOption = (option) =>
+  option.type === 'column' || option.type === 'row';
+
 const getKeyPath = (tabKey, option) => {
   return (tabKey ? `${tabKey}.` : '') + (option.name || '');
 };
@@ -189,18 +413,12 @@ options.addTab = (name, desc, tabOptions) => {
       return optionsList
         .filter((option) => {
           // Allow layout based options.
-          return (
-            option.type === 'column' ||
-            option.type === 'row' ||
-            option.name === tabHashPath[depth]
-          );
+          return isLayoutOption(option) || option.name === tabHashPath[depth];
         })
-        .map((option, depth) => {
+        .map((option) => {
           option = Object.assign({}, option);
-          if (option.name) {
-            depth++;
-          }
-          option.options = filterOptions(option.options, depth);
+          const nextDepth = option.name ? depth + 1 : depth;
+          option.options = filterOptions(option.options, nextDepth);
           return option;
         });
     };
@@ -212,14 +430,14 @@ options.addTab = (name, desc, tabOptions) => {
     list.forEach((option) => {
       if (option.name) {
         keys.push(getKeyPath(tabKey, option));
-      } else if (option.type === 'column' || option.type === 'row') {
+      } else if (isLayoutOption(option)) {
         getOptionKeys(option.options);
       }
     });
   };
   getOptionKeys(tabOptions);
 
-  chrome.storage.sync.get(keys, (items) => {
+  getStorage().get(keys, (items) => {
     $tabcontent.append(addTabOptions(tabKey, items, tabOptions));
   });
   $tabview.append($tabcontent);
@@ -241,7 +459,7 @@ const addTabOptions = (tabKey, values, tabOptions) => {
     '',
     tabOptions.map((option) => {
       const key = getKeyPath(tabKey, option);
-      const isLayout = option.type === 'column' || option.type === 'row';
+      const isLayout = isLayoutOption(option);
       let value = isLayout ? values : values[key];
       let latestValue = value;
 
@@ -264,7 +482,7 @@ const addTabOptions = (tabKey, values, tabOptions) => {
           const valueToSave = isLayout ? newValue : { [key]: newValue };
           if (autoSave) {
             if (!isEqual) {
-              chrome.storage.sync.set(valueToSave);
+              getStorage().set(valueToSave);
               showSavedAlert();
               flashSavedAlert();
               cloneValue();

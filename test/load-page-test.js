@@ -827,7 +827,8 @@ describe('web-extension-options page loading', function () {
         dom.showTR(tr1);
         const showWrapper = td1.querySelector('.row-wrapper');
         const showWrapperHasInherit =
-          showWrapper?.style.textAlign === 'inherit';
+          showWrapper?.style.textAlign === 'inherit' &&
+          showWrapper?.style.verticalAlign === 'middle';
 
         let hideCallbackRan = false;
         dom.hideTR(tr1, () => {
@@ -835,7 +836,8 @@ describe('web-extension-options page loading', function () {
         });
         const hideWrapper = td1.querySelector('.row-wrapper');
         const hideWrapperHasInherit =
-          hideWrapper?.style.textAlign === 'inherit';
+          hideWrapper?.style.textAlign === 'inherit' &&
+          hideWrapper?.style.verticalAlign === 'middle';
 
         dom.hideTR(tr2);
 
@@ -1813,6 +1815,402 @@ describe('web-extension-options page loading', function () {
         return { hasToggle: !!toggle };
       });
       assert.strictEqual(result.hasToggle, true);
+    });
+
+    it('supports pluggable storage adapters and cross-browser runtime configurations', async () => {
+      await page.goto(`${serverUrl}/tabs.html`, {
+        waitUntil: 'domcontentloaded',
+      });
+      const result = await page.evaluate(async () => {
+        const oldChrome = window.chrome;
+
+        // 1. Custom Promise-based storage (Firefox WebExtension style)
+        const promiseStore = { 'promtab.foo': true };
+        webExtensionOptions.opts.storage = {
+          get: async (keys) => {
+            const res = {};
+            if (Array.isArray(keys)) {
+              keys.forEach((k) => {
+                if (k in promiseStore) res[k] = promiseStore[k];
+              });
+            }
+            return res;
+          },
+          set: async (items) => {
+            Object.assign(promiseStore, items);
+          },
+        };
+
+        webExtensionOptions.addTab('PromTab', [
+          { name: 'foo', type: 'checkbox' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const promInput = document.querySelector(
+          '[data-key="promtab.foo"] input',
+        );
+        const promiseVal = promInput?.checked;
+        if (promInput) {
+          promInput.checked = false;
+          promInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        await new Promise((r) => setTimeout(r, 60));
+        const promiseSavedVal = promiseStore['promtab.foo'];
+
+        // 1b. Promise storage resolving undefined with default fallback
+        webExtensionOptions.opts.storage = {
+          get: async () => undefined,
+          set: async () => {},
+        };
+        webExtensionOptions.addTab('UndefTab', [
+          { name: 'undef', type: 'text', default: 'fallback_def' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const undefInput = document.querySelector(
+          '[data-key="undeftab.undef"] input',
+        );
+        const promiseUndefVal = undefInput?.value;
+
+        // 1c. Async callback storage using rest parameters
+        webExtensionOptions.opts.storage = {
+          get: (...args) => {
+            const cb = args[args.length - 1];
+            setTimeout(() => cb({ 'resttab.key': 'rest_val' }), 10);
+          },
+          set: (...args) => {
+            const cb = args[args.length - 1];
+            setTimeout(cb, 10);
+          },
+        };
+        webExtensionOptions.addTab('RestTab', [{ name: 'key', type: 'text' }]);
+        await new Promise((r) => setTimeout(r, 60));
+        const restInput = document.querySelector(
+          '[data-key="resttab.key"] input',
+        );
+        const restVal = restInput?.value;
+
+        // 1d. Custom adapter query where object input is preserved without stripping
+        let receivedQueryType;
+        webExtensionOptions.opts.storage = {
+          get: (keys, cb) => {
+            receivedQueryType = Array.isArray(keys) ? 'array' : typeof keys;
+            cb({ 'custtab.missing': undefined });
+          },
+          set: (_items, cb) => {
+            if (cb) cb();
+          },
+        };
+        webExtensionOptions.addTab('CustTab', [
+          { name: 'missing', type: 'text', default: 'applied_default' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const custInput = document.querySelector(
+          '[data-key="custtab.missing"] input',
+        );
+        const customDefaultVal = custInput?.value;
+
+        // 2. Callback-based custom storage
+        webExtensionOptions.opts.storage = {
+          get: (_keys, cb) => {
+            cb({ 'cbtab.bar': 'callback_value' });
+          },
+          set: (_items, cb) => {
+            cb();
+          },
+        };
+        webExtensionOptions.addTab('CbTab', [{ name: 'bar', type: 'text' }]);
+        await new Promise((r) => setTimeout(r, 60));
+        const cbInput = document.querySelector('[data-key="cbtab.bar"] input');
+        const cbVal = cbInput?.value;
+
+        // 3. Built-in sync area selection via options.opts.storage = 'sync'
+        window.chrome.storage.sync._data['synctab.sync_field'] = 'sync_value';
+        webExtensionOptions.opts.storage = 'sync';
+        webExtensionOptions.addTab('SyncTab', [
+          { name: 'sync_field', type: 'text' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const syncInput = document.querySelector(
+          '[data-key="synctab.sync_field"] input',
+        );
+        const syncVal = syncInput?.value;
+
+        // 4. Built-in local area selection via options.opts.storage = 'local'
+        window.chrome.storage.local = {
+          _data: { 'localtab.key': 'local_val' },
+          get: (_keys, cb) => {
+            cb({ 'localtab.key': 'local_val' });
+          },
+          set: (items, cb) => {
+            Object.assign(window.chrome.storage.local._data, items);
+            if (cb) cb();
+          },
+        };
+        webExtensionOptions.opts.storage = 'local';
+        webExtensionOptions.addTab('LocalTab', [{ name: 'key', type: 'text' }]);
+        await new Promise((r) => setTimeout(r, 60));
+        const localInput = document.querySelector(
+          '[data-key="localtab.key"] input',
+        );
+        const localVal = localInput?.value;
+
+        // 5. Cross-browser runtime detection: Firefox browser.storage.sync
+        window.browser = {
+          storage: {
+            sync: {
+              get: (_keys, cb) => {
+                cb({ 'ffsync.sync_key': 'firefox_sync' });
+              },
+              set: (_items, cb) => {
+                if (cb) cb();
+              },
+            },
+          },
+        };
+        webExtensionOptions.opts.storage = null;
+        webExtensionOptions.addTab('FFSync', [
+          { name: 'sync_key', type: 'text' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const ffSyncInput = document.querySelector(
+          '[data-key="ffsync.sync_key"] input',
+        );
+        const firefoxSyncVal = ffSyncInput?.value;
+
+        // 6. Cross-browser runtime detection: Firefox browser.storage.local
+        delete window.browser.storage.sync;
+        window.browser.storage.local = {
+          get: (_keys, cb) => {
+            cb({ 'fflocal.local_key': 'firefox_local' });
+          },
+          set: (_items, cb) => {
+            if (cb) cb();
+          },
+        };
+        webExtensionOptions.opts.storage = null;
+        webExtensionOptions.addTab('FFLocal', [
+          { name: 'local_key', type: 'text' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const ffLocalInput = document.querySelector(
+          '[data-key="fflocal.local_key"] input',
+        );
+        const firefoxLocalVal = ffLocalInput?.value;
+
+        // 6b. Fallback hierarchy: browser defined without storage falls through to chrome.storage
+        window.browser = {};
+        delete window.chrome.storage.sync;
+        window.chrome.storage.local = {
+          get: (_keys, cb) => cb({ 'throughtab.key': 'chrome_through_val' }),
+          set: (_items, cb) => cb?.(),
+        };
+        webExtensionOptions.opts.storage = null;
+        webExtensionOptions.addTab('ThroughTab', [
+          { name: 'key', type: 'text' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const throughInput = document.querySelector(
+          '[data-key="throughtab.key"] input',
+        );
+        const throughVal = throughInput?.value;
+
+        // 7. Fallback storage when neither browser nor chrome has storage (localStorage)
+        window.browser = undefined;
+        window.chrome = undefined;
+        localStorage.setItem('falltab.ls_field', JSON.stringify(true));
+        webExtensionOptions.opts.storage = null;
+        webExtensionOptions.addTab('FallTab', [
+          { name: 'ls_field', type: 'checkbox' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const fallInput = document.querySelector(
+          '[data-key="falltab.ls_field"] input',
+        );
+        const fallbackLsVal = fallInput?.checked;
+        if (fallInput) {
+          fallInput.checked = false;
+          fallInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        await new Promise((r) => setTimeout(r, 60));
+        const savedInLs = JSON.parse(localStorage.getItem('falltab.ls_field'));
+
+        // 7b. In-memory fallback when localStorage is undefined/unavailable
+        const origLsDesc = Object.getOwnPropertyDescriptor(
+          window,
+          'localStorage',
+        );
+        let memVal;
+        let memSavedVal;
+        try {
+          Object.defineProperty(window, 'localStorage', {
+            value: undefined,
+            configurable: true,
+          });
+          webExtensionOptions.opts.storage = null;
+          webExtensionOptions.addTab('MemTab', [
+            { name: 'mem_field', type: 'checkbox', default: true },
+          ]);
+          await new Promise((r) => setTimeout(r, 60));
+          const memInput = document.querySelector(
+            '[data-key="memtab.mem_field"] input',
+          );
+          memVal = memInput?.checked;
+          if (memInput) {
+            memInput.checked = false;
+            memInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+          await new Promise((r) => setTimeout(r, 60));
+          webExtensionOptions.addTab('MemTab', [
+            { name: 'mem_field', type: 'checkbox', default: true },
+          ]);
+          await new Promise((r) => setTimeout(r, 60));
+          const memInputs = document.querySelectorAll(
+            '[data-key="memtab.mem_field"] input',
+          );
+          memSavedVal = memInputs[memInputs.length - 1]?.checked;
+        } finally {
+          if (origLsDesc) {
+            Object.defineProperty(window, 'localStorage', origLsDesc);
+          }
+        }
+
+        // 8. Error resilience: Promise rejection and sync throw in storage do not crash
+        const origError = console.error;
+        console.error = () => {};
+
+        webExtensionOptions.opts.storage = {
+          get: () => Promise.reject(new Error('Promise get error')),
+          set: () => Promise.reject(new Error('Promise set error')),
+        };
+        webExtensionOptions.addTab('ErrTab', [
+          { name: 'err_field', type: 'text', default: 'safe_err' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const errInput = document.querySelector(
+          '[data-key="errtab.err_field"] input',
+        );
+        const errFieldVal = errInput?.value;
+
+        webExtensionOptions.opts.storage = {
+          get: () => {
+            throw new Error('Sync throw get');
+          },
+          set: () => {
+            throw new Error('Sync throw set');
+          },
+        };
+        webExtensionOptions.addTab('ThrowTab', [
+          { name: 'throw_field', type: 'text', default: 'safe_throw' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const throwInput = document.querySelector(
+          '[data-key="throwtab.throw_field"] input',
+        );
+        const throwFieldVal = throwInput?.value;
+
+        console.error = origError;
+
+        // 9. Chrome auto-detect with chrome.storage.local only
+        window.chrome = {
+          storage: {
+            local: {
+              get: (_keys, cb) => cb({ 'autolocal.field': 'detected_local' }),
+              set: (_i, cb) => cb?.(),
+            },
+          },
+        };
+        webExtensionOptions.opts.storage = null;
+        webExtensionOptions.addTab('AutoLocal', [
+          { name: 'field', type: 'text' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const autoLocalInput = document.querySelector(
+          '[data-key="autolocal.field"] input',
+        );
+        const chromeAutoLocalVal = autoLocalInput?.value;
+
+        // 10. Unknown area string fallback
+        webExtensionOptions.opts.storage = 'nonexistent_area';
+        webExtensionOptions.addTab('UnknownTab', [
+          { name: 'field', type: 'text', default: 'def_unknown' },
+        ]);
+        await new Promise((r) => setTimeout(r, 60));
+        const unknownInput = document.querySelector(
+          '[data-key="unknowntab.field"] input',
+        );
+        const unknownVal = unknownInput?.value;
+
+        // 11. Custom manifest configuration
+        webExtensionOptions.opts.manifest = { name: 'Direct Manifest' };
+
+        // Restore window.chrome
+        window.chrome = oldChrome;
+
+        // 12. Verify public API exports strictly match public interface (no leaks)
+        const hasInternalProperty =
+          typeof window.webExtensionOptions._internal !== 'undefined';
+        const hasGetStorageExport =
+          typeof window.webExtensionOptions.getStorage !== 'undefined';
+        const hasGetManifestExport =
+          typeof window.webExtensionOptions.getManifest !== 'undefined';
+        const hasWebExtension = typeof window.webExtensionOptions === 'object';
+        const hasNoChromeOptions = typeof window.chromeOptions === 'undefined';
+
+        return {
+          promiseVal,
+          promiseSavedVal,
+          promiseUndefVal,
+          restVal,
+          receivedQueryType,
+          customDefaultVal,
+          cbVal,
+          syncVal,
+          localVal,
+          firefoxSyncVal,
+          firefoxLocalVal,
+          throughVal,
+          fallbackLsVal,
+          savedInLs,
+          memVal,
+          memSavedVal,
+          errFieldVal,
+          throwFieldVal,
+          chromeAutoLocalVal,
+          unknownVal,
+          manifestName: webExtensionOptions.opts.manifest.name,
+          hasInternalProperty,
+          hasGetStorageExport,
+          hasGetManifestExport,
+          hasWebExtension,
+          hasNoChromeOptions,
+        };
+      });
+
+      assert.strictEqual(result.promiseVal, true);
+      assert.strictEqual(result.promiseSavedVal, false);
+      assert.strictEqual(result.promiseUndefVal, 'fallback_def');
+      assert.strictEqual(result.restVal, 'rest_val');
+      assert.strictEqual(result.receivedQueryType, 'array');
+      assert.strictEqual(result.customDefaultVal, 'applied_default');
+      assert.strictEqual(result.cbVal, 'callback_value');
+      assert.strictEqual(result.syncVal, 'sync_value');
+      assert.strictEqual(result.localVal, 'local_val');
+      assert.strictEqual(result.firefoxSyncVal, 'firefox_sync');
+      assert.strictEqual(result.firefoxLocalVal, 'firefox_local');
+      assert.strictEqual(result.throughVal, 'chrome_through_val');
+      assert.strictEqual(result.fallbackLsVal, true);
+      assert.strictEqual(result.savedInLs, false);
+      assert.strictEqual(result.memVal, true);
+      assert.strictEqual(result.memSavedVal, false);
+      assert.strictEqual(result.errFieldVal, 'safe_err');
+      assert.strictEqual(result.throwFieldVal, 'safe_throw');
+      assert.strictEqual(result.chromeAutoLocalVal, 'detected_local');
+      assert.strictEqual(result.unknownVal, 'def_unknown');
+      assert.strictEqual(result.manifestName, 'Direct Manifest');
+      assert.strictEqual(result.hasInternalProperty, false);
+      assert.strictEqual(result.hasGetStorageExport, false);
+      assert.strictEqual(result.hasGetManifestExport, false);
+      assert.strictEqual(result.hasWebExtension, true);
+      assert.strictEqual(result.hasNoChromeOptions, true);
     });
   });
 

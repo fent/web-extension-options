@@ -131,7 +131,7 @@ export const slideXHide = ($node, ms = animTime) => {
 };
 
 const wrapTD = ($td, displayNone = false) => {
-  const style = `text-align: inherit;${displayNone ? ' display: none;' : ''}`;
+  const style = `text-align: inherit; vertical-align: middle;${displayNone ? ' display: none;' : ''}`;
   const $wrapper = h('.row-wrapper', { style });
   $wrapper.append(...$td.childNodes);
   $td.append($wrapper);

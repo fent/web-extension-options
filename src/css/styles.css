@@ -155,6 +155,7 @@ body.show-tab-title .frame .mainview header {
 
 .chrome-bootstrap .list tbody td > .row-wrapper {
   text-align: inherit;
+  vertical-align: middle;
 }
 
 .chrome-bootstrap .list table {
