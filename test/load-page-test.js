@@ -825,10 +825,18 @@ describe('chrome-options page loading', function () {
         document.body.appendChild(table);
 
         dom.showTR(tr1);
+        const showWrapper = td1.querySelector('.row-wrapper');
+        const showWrapperHasInherit =
+          showWrapper?.style.textAlign === 'inherit';
+
         let hideCallbackRan = false;
         dom.hideTR(tr1, () => {
           hideCallbackRan = true;
         });
+        const hideWrapper = td1.querySelector('.row-wrapper');
+        const hideWrapperHasInherit =
+          hideWrapper?.style.textAlign === 'inherit';
+
         dom.hideTR(tr2);
 
         const flashTarget = document.createElement('div');
@@ -839,11 +847,15 @@ describe('chrome-options page loading', function () {
 
         await new Promise((resolve) => setTimeout(resolve, 600));
         return {
+          showWrapperHasInherit,
+          hideWrapperHasInherit,
           hideCallbackRan,
           flashRemoved: !flashTarget.classList.contains('active-flash'),
         };
       });
 
+      assert.strictEqual(results.showWrapperHasInherit, true);
+      assert.strictEqual(results.hideWrapperHasInherit, true);
       assert.strictEqual(results.hideCallbackRan, true);
       assert.strictEqual(results.flashRemoved, true);
     });
@@ -1062,6 +1074,50 @@ describe('chrome-options page loading', function () {
 
       assert.strictEqual(result.hasContainers, true);
       assert.strictEqual(result.threwUnsupported, true);
+    });
+
+    it('supports custom plugin fields registered via chrome.options.fields', async () => {
+      await page.goto(`${serverUrl}/tabs.html`);
+      await page.waitForSelector('input[type="checkbox"]');
+      const result = await page.evaluate(() => {
+        let savedVal;
+        chrome.options.fields.rating = (value, save) => {
+          const select = document.createElement('select');
+          select.className = 'rating-plugin';
+          for (let i = 1; i <= 5; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `${i} stars`;
+            select.appendChild(opt);
+          }
+          select.value = value || 1;
+          select.addEventListener('change', () => {
+            save(Number(select.value));
+          });
+          return select;
+        };
+
+        const ratingEl = chrome.options.addField(
+          3,
+          (val) => {
+            savedVal = val;
+          },
+          { type: 'rating' },
+        );
+
+        document.body.appendChild(ratingEl);
+        ratingEl.value = '5';
+        ratingEl.dispatchEvent(new Event('change'));
+
+        return {
+          hasPluginField: !!ratingEl,
+          initialVal: 3,
+          savedVal,
+        };
+      });
+
+      assert.strictEqual(result.hasPluginField, true);
+      assert.strictEqual(result.savedVal, 5);
     });
 
     it('handles predefined sounds with and without allowNoSound', async () => {

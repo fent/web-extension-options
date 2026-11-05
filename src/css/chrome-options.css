@@ -153,6 +153,10 @@ body.show-tab-title .frame .mainview header {
   text-align: left;
 }
 
+.chrome-bootstrap .list tbody td > .row-wrapper {
+  text-align: inherit;
+}
+
 .chrome-bootstrap .list table {
   border-collapse: collapse;
 }

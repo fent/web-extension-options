@@ -130,45 +130,45 @@ export const slideXHide = ($node, ms = animTime) => {
   });
 };
 
-export const showTR = ($tr) => {
-  $tr.style.display = '';
+const wrapTD = ($td, displayNone = false) => {
+  const style = `text-align: inherit;${displayNone ? ' display: none;' : ''}`;
+  const $wrapper = h('.row-wrapper', { style });
+  $wrapper.append(...$td.childNodes);
+  $td.append($wrapper);
+  return $wrapper;
+};
+
+const unwrapTD = ($td, $wrapper) => {
+  $td.append(...$wrapper.childNodes);
+  $wrapper.remove();
+};
+
+const animateTR = ($tr, displayNone, slideFn, onFinish) => {
+  let remainingCells = $tr.children.length;
   for (const $td of $tr.children) {
-    const $wrapper = $td.appendChild(
-      h(
-        '',
-        {
-          style: 'display: none',
-        },
-        $td.childNodes,
-      ),
-    );
-    slideYShow($wrapper);
+    const $wrapper = wrapTD($td, displayNone);
+    slideFn($wrapper);
     setTimeout(() => {
-      $td.append(...$wrapper.childNodes);
-      $wrapper.remove();
+      unwrapTD($td, $wrapper);
+      if (--remainingCells === 0 && onFinish) {
+        onFinish();
+      }
     }, animTime);
   }
 };
 
+export const showTR = ($tr) => {
+  $tr.style.display = '';
+  animateTR($tr, true, slideYShow);
+};
+
 export const hideTR = ($tr, callback) => {
-  let n = $tr.children.length;
-  for (const $td of $tr.children) {
-    const $wrapper = h('');
-    $wrapper.append(...$td.childNodes);
-    $td.append($wrapper);
-    slideYHide($wrapper);
-    setTimeout(() => {
-      $tr.style.display = 'none';
-      $td.append(...$wrapper.childNodes);
-      $wrapper.remove();
-      if (--n === 0) {
-        $tr.style.display = 'none';
-        if (callback) {
-          callback();
-        }
-      }
-    }, animTime);
-  }
+  animateTR($tr, false, slideYHide, () => {
+    $tr.style.display = 'none';
+    if (callback) {
+      callback();
+    }
+  });
 };
 
 export const flashClass = ($node, className, ms) => {
