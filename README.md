@@ -264,8 +264,7 @@ Try it in the demo:
   * Date picker
   * File upload
   * Image upload
-* Easier way to include other scripts
-* Different themes / Dark mode
-* Cross-browser support (Chrome, Firefox, Safari, Edge)
+* More themes, based on browser, dark mode
+* Easier way to embed options in any container, not just with <embed>
 * Migrating options from other options
 * Migrating structure of options
