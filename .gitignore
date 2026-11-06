@@ -1,5 +1,5 @@
 node_modules/*
 !node_modules/web-extension-options/
-dist/
+/dist/
 .nyc_output/
 coverage/
